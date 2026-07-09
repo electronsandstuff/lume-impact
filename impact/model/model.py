@@ -22,10 +22,6 @@ class LUMEImpactModel(InitialParticlesMixIn, FinalParticlesMixIn, ActionModel[Im
         self.dummy_run = dummy_run
 
     @property
-    def impact(self) -> Impact:
-        return self.simulator
-
-    @property
     def initial_particles(self) -> ParticleGroup:
         return self.simulator.initial_particles
 
