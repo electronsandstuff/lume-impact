@@ -9,8 +9,8 @@ from impact.model.actions import (
     BoolRunInfoAction,
     HeaderAction,
     ParticleGroupAction,
-    ScalarEleAction as EleAction,
-    ScalarRunInfoAction as RunInfoAction,
+    ScalarEleAction,
+    ScalarRunInfoAction,
     StatAction,
 )
 
@@ -30,19 +30,19 @@ def impact():
 
 
 # ------------------------------------------------------------------
-# EleAction
+# ScalarEleAction
 # ------------------------------------------------------------------
 
 
 def test_ele_get(impact):
-    action = EleAction(
+    action = ScalarEleAction(
         ele_name="Q1", attribute="b1_gradient", name="test", default_value=0.0
     )
     assert action._get(impact) == 1.5
 
 
 def test_ele_set(impact):
-    action = EleAction(
+    action = ScalarEleAction(
         ele_name="Q1", attribute="b1_gradient", name="test", default_value=0.0
     )
     action._set(impact, 2.0)
@@ -50,7 +50,7 @@ def test_ele_set(impact):
 
 
 def test_ele_name():
-    action = EleAction(
+    action = ScalarEleAction(
         ele_name="Q1", attribute="b1_gradient", name="my_var", default_value=0.0
     )
     assert action.name == "my_var"
@@ -109,12 +109,12 @@ def test_stat_read_only():
 
 
 # ------------------------------------------------------------------
-# RunInfoAction
+# ScalarRunInfoAction
 # ------------------------------------------------------------------
 
 
 def test_run_info_get(impact):
-    action = RunInfoAction(
+    action = ScalarRunInfoAction(
         key="run_time", name="test", default_value=None, read_only=True
     )
     assert action._get(impact) == 3.2
