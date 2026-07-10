@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import numpy as np
-from pydantic import model_validator
+from pydantic import model_validator, Field
 
 from pmd_beamphysics import ParticleGroup
 
@@ -123,7 +123,7 @@ class ParticleGroupAction(WritableActionMixin[Impact], ParticleGroupVariable):
     """
 
     tool_name: str
-    default_value: Any = None
+    default_value: ParticleGroup = Field(..., default_factory=_empty_particle_group)
 
     @model_validator(mode="after")
     def _check_initial_particles(self) -> "ParticleGroupAction":
