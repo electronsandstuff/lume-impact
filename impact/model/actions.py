@@ -5,7 +5,6 @@ from typing import Any
 import numpy as np
 from pydantic import model_validator
 
-from pmd_beamphysics import ParticleGroup
 
 from impact.impact import Impact
 from lume.actions import ReadOnlyActionMixin, WritableActionMixin
@@ -16,23 +15,6 @@ from lume.variables import (
     ScalarVariable,
     StrVariable,
 )
-
-
-def _empty_particle_group() -> ParticleGroup:
-    return ParticleGroup(
-        data={
-            "x": np.array([]),
-            "px": np.array([]),
-            "y": np.array([]),
-            "py": np.array([]),
-            "z": np.array([]),
-            "pz": np.array([]),
-            "t": np.array([]),
-            "weight": np.array([]),
-            "status": np.array([], dtype=int),
-            "species": "electron",
-        }
-    )
 
 
 class ScalarEleAction(WritableActionMixin[Impact], ScalarVariable):
