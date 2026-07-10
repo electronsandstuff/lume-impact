@@ -18,7 +18,6 @@ from impact.model.actions import (
     StatAction,
     StrEleAction,
     StrRunInfoAction,
-    _empty_particle_group,
 )
 
 logger = logging.getLogger(__name__)
@@ -491,21 +490,12 @@ def _make_run_info_actions(impact: Any, config: RunInfoConfig) -> list[Action]:
 def _make_particle_actions(impact: Any, config: ParticlesConfig) -> list[Action]:
     actions = []
     reverse_particle_map = {v: k for k, v in config.name_map.items()}
-    particles_data = impact.output.get("particles", {})
     for tool_name in impact.particles.keys():
         control_name = reverse_particle_map.get(tool_name, tool_name)
-        default_val = (
-            getattr(impact, "initial_particles", None)
-            if tool_name == "initial_particles"
-            else particles_data.get(tool_name)
-        )
-        if default_val is None:
-            default_val = _empty_particle_group()
         actions.append(
             ParticleGroupAction(
                 tool_name=tool_name,
                 name=config.pattern.format(name=control_name),
-                default_value=default_val,
                 read_only=tool_name != "initial_particles",
             )
         )

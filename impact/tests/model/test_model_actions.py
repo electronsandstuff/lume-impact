@@ -148,23 +148,19 @@ def test_bool_run_info_model_get_does_not_raise(impact):
 
 
 def test_particle_group_get_initial(impact):
-    action = ParticleGroupAction(
-        tool_name="initial_particles", name="test_pg", default_value=None
-    )
+    action = ParticleGroupAction(tool_name="initial_particles", name="test_pg")
     assert action._get(impact) is impact.particles["initial_particles"]
 
 
 def test_particle_group_get_final(impact):
     action = ParticleGroupAction(
-        tool_name="final_particles", name="test_pg", default_value=None, read_only=True
+        tool_name="final_particles", name="test_pg", read_only=True
     )
     assert action._get(impact) is impact.particles["final_particles"]
 
 
 def test_particle_group_set_initial(impact):
-    action = ParticleGroupAction(
-        tool_name="initial_particles", name="test_pg", default_value=None
-    )
+    action = ParticleGroupAction(tool_name="initial_particles", name="test_pg")
     new_pg = MagicMock()
     action._set(impact, new_pg)
     assert impact.initial_particles == new_pg
