@@ -29,9 +29,11 @@ class LUMEDistgenModel(FinalParticlesMixIn, ActionModel[Generator]):
     def from_generator(
         cls,
         gen: Generator,
-        config: DistgenVariableMappingConfig = DistgenVariableMappingConfig(),
+        config: DistgenVariableMappingConfig | None = None,
         **kwargs,
     ) -> "LUMEDistgenModel":
+        if config is None:
+            config = DistgenVariableMappingConfig()
         return cls(gen, make_actions(gen, config), **kwargs)
 
     def _set(self, values: dict[str, Any]) -> None:

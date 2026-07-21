@@ -504,7 +504,7 @@ def _make_particle_actions(impact: Any, config: ParticlesConfig) -> list[Action]
 
 def make_actions(
     impact: Impact,
-    config: VariableMappingConfig,
+    config: VariableMappingConfig | None = None,
     stat_size_expansion: float = 1.1,
 ) -> list[Action]:
     """Build variable actions for every element attribute, header key, and output
@@ -521,6 +521,9 @@ def make_actions(
         NDVariable shape when ``StatsConfig.max_size`` is not set.
     """
     actions: list[Action] = []
+    if config is None:
+        config = VariableMappingConfig()
+
     if config.header is not None:
         actions += _make_header_actions(impact, config.header)
     if config.elements is not None:

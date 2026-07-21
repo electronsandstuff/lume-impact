@@ -65,7 +65,7 @@ class LUMEImpactModel(InitialParticlesMixIn, FinalParticlesMixIn, ActionModel[Im
     def from_impact(
         cls,
         impact: Impact,
-        config: VariableMappingConfig = VariableMappingConfig(),
+        config: VariableMappingConfig | None = None,
         **kwargs,
     ) -> "LUMEImpactModel":
         """
