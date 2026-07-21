@@ -2,26 +2,64 @@ from __future__ import annotations
 
 from typing import Any
 
+from beamphysics import ParticleGroup
 from impact.impact import Impact
-from lume.model import LUMEModel
-from lume.variables import Variable
+from lume.actions import ActionModel
+from lume.staged_model import FinalParticlesMixIn, InitialParticlesMixIn
 
-from impact.model.actions import ImpactAction, WritableImpactAction
+from lume.actions import Action
 from impact.model.config import VariableMappingConfig, make_actions
-from impact.model.exceptions import ReadOnlyError
 
 
-class LUMEImpactModel(LUMEModel):
+class LUMEImpactModel(InitialParticlesMixIn, FinalParticlesMixIn, ActionModel[Impact]):
+    """
+    LUMEModel using the actions framework wrapping an Impact-T simulator object.
+    """
+
     def __init__(
         self,
         impact: Impact,
-        actions: list[ImpactAction],
+        actions: list[Action],
         dummy_run: bool = False,
     ):
-        self.impact = impact
-        self.actions = actions
-        self._action_by_name: dict[str, ImpactAction] = {m.name: m for m in actions}
+        super().__init__(simulator=impact, action_variables=actions)
         self.dummy_run = dummy_run
+
+    @property
+    def initial_particles(self) -> ParticleGroup:
+        """
+        Expose the initial particles provided to simulation using `InitialParticlesMixIn` for use in `StagedModel`.
+
+        Returns
+        -------
+        ParticleGroup
+            The starting particles from Impact-T
+        """
+        return self.simulator.initial_particles
+
+    @initial_particles.setter
+    def initial_particles(self, val: ParticleGroup) -> None:
+        """
+        Expose the initial particles provided to simulation using `InitialParticlesMixIn` for use in `StagedModel`.
+
+        Parameters
+        ----------
+        val : ParticleGroup
+            The starting particles provided to Impact-T
+        """
+        self.simulator.initial_particles = val
+
+    @property
+    def final_particles(self) -> ParticleGroup:
+        """
+        Expose the final particles provided to simulation using `FinalParticlesMixIn` for use in `StagedModel`.
+
+        Returns
+        -------
+        ParticleGroup
+            The final particles as annotated by Impact-T
+        """
+        return self.simulator.particles.get("final_particles")
 
     @classmethod
     def from_impact(
@@ -30,62 +68,26 @@ class LUMEImpactModel(LUMEModel):
         config: VariableMappingConfig = VariableMappingConfig(),
         **kwargs,
     ) -> "LUMEImpactModel":
-        return cls(impact, make_actions(impact, config), **kwargs)
-
-    @property
-    def supported_variables(self) -> dict[str, Variable]:
-        return {m.name: m.var for m in self.actions}
-
-    def _get(self, names: list[str]) -> dict[str, Any]:
-        return {name: self._action_by_name[name].get(self.impact) for name in names}
-
-    def _set(self, values: dict[str, Any]) -> None:
-        to_set: list[tuple[WritableImpactAction, Any]] = []
-        for name, value in values.items():
-            action = self._action_by_name[name]
-            if not isinstance(action, WritableImpactAction):
-                raise ReadOnlyError(f"'{action.name}' is read-only")
-            to_set.append((action, value))
-        for action, value in to_set:
-            action._set(self.impact, value)
-        if not self.dummy_run:
-            self.impact.run()
-
-    def register_action(self, action: ImpactAction) -> None:
-        """Add a user-defined action to the model.
-
-        If an action with the same name already exists it is replaced.
         """
-        name = action.name
-        if name in self._action_by_name:
-            self.actions[self.actions.index(self._action_by_name[name])] = action
-        else:
-            self.actions.append(action)
-        self._action_by_name[name] = action
-
-    def unregister_action(self, name: str) -> None:
-        """Remove an action from the model by name.
+        Generate class populated with variables from an existing Impact-T object. Variable inclusion and naming is configured
+        through VariableMappingConfig.
 
         Parameters
         ----------
-        name : str
-            Name of the action to remove.
+        impact : Impact
+            Impact-T session with lattice loaded and already run (to populate stats data and particle groups)
+        config : VariableMappingConfig, optional
+            Variable creation config. Defines mapping from Impact-T elements, attributes to variables, by
+            default VariableMappingConfig()
 
-        Raises
-        ------
-        KeyError
-            If no action with the given name is registered.
+        Returns
+        -------
+        LUMEImpactModel
+            The generated model with action variables registered
         """
-        if name not in self._action_by_name:
-            raise KeyError(f"No action named '{name}' is registered")
-        action = self._action_by_name.pop(name)
-        self.actions.remove(action)
+        return cls(impact, make_actions(impact, config), **kwargs)
 
-    def reset(self) -> None:
-        self.set(
-            {
-                m.name: m.var.default_value
-                for m in self.actions
-                if not m.read_only and hasattr(m.var, "default_value")
-            }
-        )
+    def _set(self, values: dict[str, Any]) -> None:
+        super()._set(values)
+        if not self.dummy_run:
+            self.simulator.run()
