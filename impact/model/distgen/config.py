@@ -347,7 +347,7 @@ def _process_start_config(
 
 def make_actions(
     gen: Generator,
-    config: DistgenVariableMappingConfig = DistgenVariableMappingConfig(),
+    config: DistgenVariableMappingConfig | None = None,
 ) -> list[DistgenInputAction]:
     """Build variable mappings from a distgen Generator and config.
 
@@ -364,6 +364,9 @@ def make_actions(
     list[DistgenInputAction]
     """
     actions: list[DistgenInputAction] = []
+    if config is None:
+        config = DistgenVariableMappingConfig()
+
     inp_cfg = config.inputs
     if inp_cfg is None:
         return actions
